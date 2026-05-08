@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Tibia Tracker PRO</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root{
+    --bg:#050505;
+    --card:#101010;
+    --input:#1a1a1a;
+    --text:#ffffff;
+    --green:#00ff88;
+    --red:#ff4d4d;
+    --gold:#ffd000;
+    --blue:#00c3ff;
+    --purple:#c300ff;
+    --gray:#888;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:
+        radial-gradient(circle at top,#1a1a1a,#050505);
+
+    color:var(--text);
+
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:230px;
+    height:100vh;
+    background:#0f0f0f;
+    padding:20px;
+    overflow:auto;
+    border-right:1px solid #222;
+}
+
+.sidebar h2{
+    color:var(--gold);
+    margin-bottom:20px;
+}
+
+.sidebar button{
+    width:100%;
+    margin-bottom:10px;
+}
+
+.app{
+    margin-left:250px;
+    padding:20px;
+}
+
+.card{
+    background:var(--card);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+    border:1px solid #1f1f1f;
+    box-shadow:0 0 20px rgba(0,0,0,.4);
+}
+
+.header{
+    text-align:center;
+}
+
+.header h1{
+    color:var(--gold);
+    margin-bottom:10px;
+}
+
+.balance{
+    font-size:2rem;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.stat{
+    background:var(--card);
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+}
+
+.stat h3{
+    color:var(--gray);
+    margin-bottom:10px;
+}
+
+.stat span{
+    font-size:1.2rem;
+    font-weight:bold;
+}
+
+.form{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+input,select{
+    background:var(--input);
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    color:white;
+    outline:none;
+}
+
+button{
+    background:var(--gold);
+    color:black;
+    border:none;
+    padding:12px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:.2s;
+}
+
+button:hover{
+    transform:scale(1.03);
+}
+
+.action-btn{
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.edit-btn{
+    background:var(--blue);
+    color:white;
+}
+
+.delete-btn{
+    background:var(--red);
+    color:white;
+}
+
+.list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.item{
+    background:var(--card);
+    padding:15px;
+    border-radius:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-left:4px solid var(--gold);
+
+    animation:fade .3s ease;
+}
+
+.item-left{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.date{
+    color:var(--gray);
+    font-size:.8rem;
+}
+
+.chart-box{
+    height:300px;
+}
+
+.section{
+    display:none;
+}
+
+#loginScreen{
+    max-width:400px;
+    margin:80px auto;
+}
+
+@keyframes fade{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media(max-width:900px){
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+        border-right:none;
+    }
+
+    .app{
+        margin-left:0;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen" class="card">
+
+    <h1 style="text-align:center;color:var(--gold);margin-bottom:20px;">
+        🎮 Tibia Tracker PRO
+    </h1>
+
+    <div class="form">
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Nome do personagem"
+        >
+
+        <button type="button" onclick="login()">
+            Entrar
+        </button>
+
+    </div>
+
+</div>
+
+<div id="mainApp" style="display:none;">
+
+<div class="sidebar">
+
+    <h2>🪙 Tibia Tracker</h2>
+
+    <button onclick="showSection('dashboard')">
+        📊 Dashboard
+    </button>
+
+    <button onclick="showSection('farm')">
+        💰 Farm
+    </button>
+
+    <button onclick="showSection('hunts')">
+        ⚔️ Hunts
+    </button>
+
+    <button onclick="showSection('loot')">
+        💎 Loot
+    </button>
+
+    <button onclick="showSection('calculator')">
+        🧮 TC → R$
+    </button>
+
+</div>
+
+<div class="app">
+
+<div id="dashboard" class="section">
+
+    <div class="card header">
+
+        <h1>🪙 Tibia Tracker</h1>
+
+        <p>Saldo Atual</p>
+
+        <div id="balance" class="balance">
+            0 gp
+        </div>
+
+    </div>
+
+    <div class="stats">
+
+        <div class="stat">
+            <h3>Total Ganho</h3>
+            <span id="gain" style="color:var(--green)">
+                0 gp
+            </span>
+        </div>
+
+        <div class="stat">
+            <h3>Total Gasto</h3>
+            <span id="spent" style="color:var(--red)">
+                0 gp
+            </span>
+        </div>
+
+        <div class="stat">
+            <h3>Profit/H</h3>
+            <span id="perHour" style="color:var(--gold)">
+                0 gp/h
+            </span>
+        </div>
+
+        <div class="stat">
+            <h3>Total Hunts</h3>
+            <span id="huntCount" style="color:var(--blue)">
+                0
+            </span>
+        </div>
+
+    </div>
+
+    <div class="card chart-box">
+        <canvas id="chart"></canvas>
+    </div>
+
+</div>
+
+<div id="farm" class="section">
+
+    <div class="card">
+
+        <h2 style="margin-bottom:15px;color:var(--gold)">
+            💰 Registrar Farm
+        </h2>
+
+        <div class="form">
+
+            <input
+                type="text"
+                id="desc"
+                placeholder="Ex: Rosha, Soul War..."
+            >
+
+            <input
+                type="number"
+                id="value"
+                placeholder="Valor"
+            >
+
+            <input
+                type="number"
+                id="hours"
+                placeholder="Horas"
+            >
+
+            <select id="type">
+
+                <option value="gain">
+                    Ganhei
+                </option>
+
+                <option value="spent">
+                    Gastei
+                </option>
+
+            </select>
+
+            <button onclick="saveTransaction()">
+                Salvar Farm
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="list" class="list"></div>
+
+</div>
+
+<div id="hunts" class="section">
+
+    <div class="card">
+
+        <h2 style="margin-bottom:15px;color:var(--gold)">
+            ⚔️ Hunt Tracker
+        </h2>
+
+        <div class="form">
+
+            <input
+                type="text"
+                id="huntName"
+                placeholder="Nome da hunt"
+            >
+
+            <input
+                type="number"
+                id="huntProfit"
+                placeholder="Profit"
+            >
+
+            <input
+                type="number"
+                id="huntWaste"
+                placeholder="Waste"
+            >
+
+            <input
+                type="number"
+                id="huntHours"
+                placeholder="Horas"
+            >
+
+            <input
+                type="number"
+                id="huntXp"
+                placeholder="XP"
+            >
+
+            <button onclick="saveHunt()">
+                Salvar Hunt
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="huntList" class="list"></div>
+
+</div>
+
+<div id="loot" class="section">
+
+    <div class="card">
+
+        <h2 style="margin-bottom:15px;color:var(--gold)">
+            💎 Loot Tracker
+        </h2>
+
+        <div class="form">
+
+            <input
+                type="text"
+                id="lootName"
+                placeholder="Nome do item"
+            >
+
+            <input
+                type="number"
+                id="lootValue"
+                placeholder="Valor"
+            >
+
+            <button onclick="saveLoot()">
+                Salvar Loot
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="lootList" class="list"></div>
+
+</div>
+
+<div id="calculator" class="section">
+
+    <div class="card">
+
+        <h2 style="margin-bottom:15px;color:var(--gold)">
+            🧮 Tibia Coin → R$
+        </h2>
+
+        <div class="form">
+
+            <input
+                type="number"
+                id="tcValue"
+                placeholder="Quantidade TC"
+            >
+
+            <input
+                type="number"
+                id="tcPrice"
+                placeholder="Preço de 250 TC"
+            >
+
+            <button onclick="convertTC()">
+                Converter
+            </button>
+
+            <h2 id="moneyResult">
+                R$ 0
+            </h2>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let db =
+JSON.parse(localStorage.getItem("tibia_db")) || [];
+
+let hunts =
+JSON.parse(localStorage.getItem("tibia_hunts")) || [];
+
+let loots =
+JSON.parse(localStorage.getItem("tibia_loots")) || [];
+
+let chart;
+
+function login(){
+
+    const username =
+    document.getElementById("username")
+    .value
+    .trim();
+
+    if(username === ""){
+
+        alert("Digite o nome do personagem");
+
+        return;
+    }
+
+    localStorage.setItem(
+        "tibia_user",
+        username
+    );
+
+    document.getElementById("loginScreen")
+    .style.display = "none";
+
+    document.getElementById("mainApp")
+    .style.display = "block";
+
+    showSection("dashboard");
+
+    update();
+
+    renderHunts();
+
+    renderLoots();
+}
+
+function showSection(id){
+
+    document
+    .querySelectorAll(".section")
+    .forEach(section => {
+
+        section.style.display = "none";
+    });
+
+    document.getElementById(id)
+    .style.display = "block";
+}
+
+function saveTransaction(){
+
+    const desc =
+    document.getElementById("desc").value;
+
+    const value =
+    parseInt(document.getElementById("value").value);
+
+    const hours =
+    parseFloat(document.getElementById("hours").value) || 1;
+
+    const type =
+    document.getElementById("type").value;
+
+    if(!desc || isNaN(value)){
+
+        alert("Preencha corretamente");
+
+        return;
+    }
+
+    db.push({
+
+        id:Date.now(),
+
+        desc,
+
+        value,
+
+        hours,
+
+        type,
+
+        date:new Date().toLocaleDateString("pt-BR")
+    });
+
+    localStorage.setItem(
+        "tibia_db",
+        JSON.stringify(db)
+    );
+
+    update();
+}
+
+function editTransaction(id){
+
+    const item =
+    db.find(t => t.id === id);
+
+    const newDesc =
+    prompt("Editar:", item.desc);
+
+    const newValue =
+    prompt("Novo valor:", item.value);
+
+    if(newDesc && newValue){
+
+        item.desc = newDesc;
+
+        item.value = parseInt(newValue);
+
+        localStorage.setItem(
+            "tibia_db",
+            JSON.stringify(db)
+        );
+
+        update();
+    }
+}
+
+function deleteTransaction(id){
+
+    if(!confirm("Excluir farm?")){
+
+        return;
+    }
+
+    db = db.filter(item => item.id !== id);
+
+    localStorage.setItem(
+        "tibia_db",
+        JSON.stringify(db)
+    );
+
+    update();
+}
+
+function saveHunt(){
+
+    const name =
+    document.getElementById("huntName").value;
+
+    const profit =
+    parseInt(document.getElementById("huntProfit").value) || 0;
+
+    const waste =
+    parseInt(document.getElementById("huntWaste").value) || 0;
+
+    const hours =
+    parseFloat(document.getElementById("huntHours").value) || 1;
+
+    const xp =
+    parseInt(document.getElementById("huntXp").value) || 0;
+
+    hunts.push({
+
+        id:Date.now(),
+
+        name,
+
+        profit,
+
+        waste,
+
+        hours,
+
+        xp,
+
+        total:profit - waste,
+
+        perHour:Math.floor((profit - waste)/hours),
+
+        xpHour:Math.floor(xp/hours),
+
+        date:new Date().toLocaleDateString("pt-BR")
+    });
+
+    localStorage.setItem(
+        "tibia_hunts",
+        JSON.stringify(hunts)
+    );
+
+    renderHunts();
+}
+
+function editHunt(id){
+
+    const hunt =
+    hunts.find(h => h.id === id);
+
+    const newName =
+    prompt("Editar hunt:", hunt.name);
+
+    if(newName){
+
+        hunt.name = newName;
+
+        localStorage.setItem(
+            "tibia_hunts",
+            JSON.stringify(hunts)
+        );
+
+        renderHunts();
+    }
+}
+
+function deleteHunt(id){
+
+    if(!confirm("Excluir hunt?")){
+
+        return;
+    }
+
+    hunts = hunts.filter(
+        hunt => hunt.id !== id
+    );
+
+    localStorage.setItem(
+        "tibia_hunts",
+        JSON.stringify(hunts)
+    );
+
+    renderHunts();
+}
+
+function saveLoot(){
+
+    const name =
+    document.getElementById("lootName").value;
+
+    const value =
+    parseInt(document.getElementById("lootValue").value);
+
+    if(!name || isNaN(value)){
+
+        alert("Preencha corretamente");
+
+        return;
+    }
+
+    loots.push({
+
+        id:Date.now(),
+
+        name,
+
+        value,
+
+        date:new Date().toLocaleDateString("pt-BR")
+    });
+
+    localStorage.setItem(
+        "tibia_loots",
+        JSON.stringify(loots)
+    );
+
+    renderLoots();
+}
+
+function editLoot(id){
+
+    const loot =
+    loots.find(l => l.id === id);
+
+    const newName =
+    prompt("Editar loot:", loot.name);
+
+    if(newName){
+
+        loot.name = newName;
+
+        localStorage.setItem(
+            "tibia_loots",
+            JSON.stringify(loots)
+        );
+
+        renderLoots();
+    }
+}
+
+function deleteLoot(id){
+
+    if(!confirm("Excluir loot?")){
+
+        return;
+    }
+
+    loots = loots.filter(
+        loot => loot.id !== id
+    );
+
+    localStorage.setItem(
+        "tibia_loots",
+        JSON.stringify(loots)
+    );
+
+    renderLoots();
+}
+
+function renderHunts(){
+
+    const list =
+    document.getElementById("huntList");
+
+    list.innerHTML = "";
+
+    hunts.slice().reverse().forEach(hunt => {
+
+        list.innerHTML += `
+
+        <div class="item">
+
+            <div class="item-left">
+
+                <strong>
+                    ⚔️ ${hunt.name}
+                </strong>
+
+                <span class="date">
+                    ${hunt.date}
+                </span>
+
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;">
+
+                <div style="color:var(--green)">
+                    ${hunt.total.toLocaleString()} gp
+                </div>
+
+                <button
+                    class="action-btn edit-btn"
+                    onclick="editHunt(${hunt.id})"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick="deleteHunt(${hunt.id})"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("huntCount")
+    .innerText = hunts.length;
+}
+
+function renderLoots(){
+
+    const list =
+    document.getElementById("lootList");
+
+    list.innerHTML = "";
+
+    loots.slice().reverse().forEach(item => {
+
+        list.innerHTML += `
+
+        <div class="item">
+
+            <div class="item-left">
+
+                <strong>
+                    💎 ${item.name}
+                </strong>
+
+                <span class="date">
+                    ${item.date}
+                </span>
+
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;">
+
+                <div style="color:var(--gold)">
+                    ${item.value.toLocaleString()} gp
+                </div>
+
+                <button
+                    class="action-btn edit-btn"
+                    onclick="editLoot(${item.id})"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick="deleteLoot(${item.id})"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+        `;
+    });
+}
+
+function convertTC(){
+
+    const tc =
+    parseInt(document.getElementById("tcValue").value);
+
+    const price =
+    parseFloat(document.getElementById("tcPrice").value);
+
+    const result =
+    (tc / 250) * price;
+
+    document.getElementById("moneyResult")
+    .innerText = "R$ " + result.toFixed(2);
+}
+
+function update(){
+
+    const list =
+    document.getElementById("list");
+
+    list.innerHTML = "";
+
+    let gain = 0;
+    let spent = 0;
+    let totalHours = 0;
+
+    db.slice().reverse().forEach(item => {
+
+        if(item.type === "gain"){
+
+            gain += item.value;
+
+        }else{
+
+            spent += item.value;
+        }
+
+        totalHours += item.hours;
+
+        list.innerHTML += `
+
+        <div class="item">
+
+            <div class="item-left">
+
+                <strong>
+                    ${item.desc}
+                </strong>
+
+                <span class="date">
+                    ${item.date}
+                </span>
+
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;">
+
+                <div style="font-weight:bold;color:${item.type === 'gain' ? '#00ff88' : '#ff4d4d'}">
+
+                    ${item.type === 'gain' ? '+' : '-'}
+                    ${item.value.toLocaleString()} gp
+
+                </div>
+
+                <button
+                    class="action-btn edit-btn"
+                    onclick="editTransaction(${item.id})"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick="deleteTransaction(${item.id})"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+        `;
+    });
+
+    const total = gain - spent;
+
+    const perHour =
+    totalHours > 0
+    ? Math.floor(total / totalHours)
+    : 0;
+
+    document.getElementById("balance")
+    .innerText = total.toLocaleString() + " gp";
+
+    document.getElementById("gain")
+    .innerText = gain.toLocaleString() + " gp";
+
+    document.getElementById("spent")
+    .innerText = spent.toLocaleString() + " gp";
+
+    document.getElementById("perHour")
+    .innerText = perHour.toLocaleString() + " gp/h";
+
+    renderChart(gain, spent);
+}
+
+function renderChart(gain, spent){
+
+    const ctx =
+    document.getElementById("chart");
+
+    if(chart){
+
+        chart.destroy();
+    }
+
+    chart = new Chart(ctx,{
+
+        type:"doughnut",
+
+        data:{
+
+            labels:["Ganhos","Gastos"],
+
+            datasets:[{
+
+                data:[
+                    gain || 1,
+                    spent || 1
+                ],
+
+                backgroundColor:[
+                    "#00ff88",
+                    "#ff4d4d"
+                ],
+
+                borderWidth:0
+
+            }]
+        },
+
+        options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            plugins:{
+
+                legend:{
+
+                    position:"bottom",
+
+                    labels:{
+                        color:"#fff"
+                    }
+                }
+            }
+        }
+    });
+}
+
+showSection("dashboard");
+
+update();
+
+renderHunts();
+
+renderLoots();
+
+</script>
+
+</body>
+</html>
